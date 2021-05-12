@@ -38,18 +38,18 @@ function processDomProperties(rest, el, handlerRest) {
         }
     }
 }
-function mountChildren(children, el, childrenFlags, isSvg) {
+function mountChildren(children, el, childrenFlags, isSvg, parent) {
     switch (childrenFlags) {
         case 'MutilpleChildren':
             for (var c = 0, len = children.length; c < len; c++) {
-                mount_1["default"](children[c], el, isSvg);
+                mount_1["default"](children[c], el, isSvg, parent);
             }
             break;
         case 'SingleChildren':
-            mount_1["default"](children, el, isSvg);
+            mount_1["default"](children, el, isSvg, parent);
             break;
         case 'Text':
-            mount_1["default"](children, el);
+            mount_1["default"](children, el, false, parent);
             break;
         default:
             break;

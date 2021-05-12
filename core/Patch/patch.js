@@ -6,10 +6,6 @@ function addVnode(nvnode, pvnode, container) {
     if (pvnode === void 0) { pvnode = {}; }
     switch (nvnode.flags) {
         case 'Normal':
-            addElement(nvnode, pvnode, container);
-            console.log(container);
-            console.log(nvnode);
-            console.log('p', pvnode);
             patchChildren(nvnode, pvnode, container);
             break;
         case 'Text':
@@ -25,6 +21,7 @@ function removeVnode(vnode) {
     var el = vnode.el;
     switch (vnode.flags) {
         case 'Text':
+            break;
         case 'Normal':
             el.parentNode.removeChild(el);
             break;
@@ -36,19 +33,34 @@ function removeElement(vnode) {
     var el = vnode.el;
     el.parentNode.removeChild(el);
 }
-function addElement(nvnode, pvnode, container) {
-    var el = createElement_1.createElement(nvnode, nvnode.flags === 'Svg').el;
-    if (pvnode) {
-        pvnode.el.parentNode.insertBefore(el, pvnode.el.nextElementSibling);
+function replaceVnode(nvnode, pvnode, contianer) {
+    if (nvnode.tag === pvnode.tag) {
+        nvnode.el = pvnode.el;
+        nvnode.el.innerHTML = '';
     }
-    else if (container) {
-        container.appendChild(el);
+    else {
+        removeVnode(pvnode);
+        addVnode(nvnode, null, contianer); // 这里会创建nvnode.el, 并且不会执行patchChildren, 这里将Children的收集放置到下面处理
     }
-}
-function replaceElement(pvnode, nvnode) {
-    addVnode(nvnode, pvnode);
-    removeVnode(pvnode);
-    return;
+    switch (nvnode.childrenFlags) {
+        case 'Text':
+            nvnode.el.innerHTML = nvnode.children;
+            break;
+        default:
+            var children = Array.isArray(nvnode.children) ? nvnode.children : [nvnode.children];
+            children.forEach(function (child) {
+                patchChildren(child, null, nvnode.el);
+            });
+            break;
+    }
+    var pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children];
+    pChildren.forEach(function (child) {
+        if (child.flags === 'Portal') {
+            (child.el || []).forEach(function (el) {
+                el.parentNode.removeChild(el);
+            });
+        }
+    });
 }
 function patchText(nvnode) {
     nvnode.el.innerHTML = nvnode.children;
@@ -57,21 +69,22 @@ function patchChildren(nvnode, pvnode, container) {
     var _a = nvnode || {}, childrenFlags = _a.childrenFlags, children = _a.children, el = _a.el /* 父容器 */;
     var _b = pvnode || {}, pChildrenFlags = _b.childrenFlags, pChildren = _b.children;
     if (!pvnode) {
-        return mount_1["default"](nvnode, container, nvnode.flag === 'Svg');
+        return mount_1["default"](nvnode, container, nvnode.flags === 'Svg');
     }
     if (pChildrenFlags === 'NoChildren') {
         switch (childrenFlags) {
             case 'NoChildren':
                 return;
             case 'SingleChildren':
-                return patch(children, null, el);
+                return replaceVnode(nvnode, pvnode, pvnode.el);
             case 'MutilpleChildren':
                 children.forEach(function (child) {
                     patch(child, null, el);
                 });
                 return;
             case 'Text':
-                addElement(nvnode, null, container);
+                if (children.flags === 'Normal') {
+                }
                 return patchText(nvnode);
             default:
                 return;
@@ -82,7 +95,7 @@ function patchChildren(nvnode, pvnode, container) {
             case 'NoChildren':
                 return removeElement(pvnode);
             case 'SingleChildren':
-                return patch(children, pChildren);
+                return replaceVnode(nvnode, pvnode, pvnode.el);
             case 'MutilpleChildren':
                 children.forEach(function (child) {
                     patch(child, pChildren, el);
@@ -103,11 +116,10 @@ function patchChildren(nvnode, pvnode, container) {
                 });
                 return;
             case 'SingleChildren':
-                pChildren.forEach(function (child) {
-                    removeVnode(child);
-                });
-                return addElement(null, children, el);
+                replaceVnode(nvnode, pvnode, pvnode.el);
+                return;
             case 'MutilpleChildren':
+                console.log('el', el);
                 children.forEach(function (child) {
                     patch(child, null, el);
                 });
@@ -128,14 +140,9 @@ function patchChildren(nvnode, pvnode, container) {
                 removeVnode(pChildren);
                 return;
             case 'SingleChildren':
-                return addVnode(children, null, el);
+                return replaceVnode(nvnode, pvnode, pvnode.el.parentNode);
             case 'MutilpleChildren':
-                children.forEach(function (child) {
-                    patch(child, null, el);
-                });
-                pChildren.forEach(function (child) {
-                    removeVnode(child);
-                });
+                replaceVnode(nvnode, pvnode);
                 return;
             case 'Text':
                 nvnode.el = pvnode.el;
@@ -149,17 +156,18 @@ function patchChildren(nvnode, pvnode, container) {
 }
 function patchElement(nvnode, pvnode) {
     if (pvnode.tag !== nvnode.tag) {
-        return replaceElement(pvnode, nvnode); // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
+        return replaceVnode(nvnode, pvnode, pvnode.el); // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
     }
     else {
         if (pvnode.flags === nvnode.flags) { // vnode.flags代表当前vnode类型
             nvnode.el = pvnode.el;
-            createElement_1.getAttributes(nvnode, pvnode);
-            console.log(pvnode.el);
+            if (nvnode.flags === 'Normal' || nvnode.flags === 'Svg') {
+                createElement_1.getAttributes(nvnode, pvnode);
+            }
             patchChildren(nvnode, pvnode, nvnode.el);
         }
         else {
-            return replaceElement(pvnode, nvnode);
+            return replaceVnode(nvnode, pvnode);
         }
     }
 }

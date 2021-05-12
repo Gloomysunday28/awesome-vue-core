@@ -1,6 +1,5 @@
 import { getHumpTransformReverse } from '../../utils'
 import mount from './mount'
-import patch from './patch'
 
 const needCurrentAttribute = /value|checked|selected|muted/
 
@@ -26,18 +25,18 @@ function processDomProperties(rest, el, handlerRest?) {
   }
 }
 
-export function mountChildren(children, el, childrenFlags, isSvg?) { // 挂载子节点
+export function mountChildren(children, el, childrenFlags, isSvg?, parent?) { // 挂载子节点
   switch (childrenFlags) {
     case 'MutilpleChildren':
       for (let c = 0, len = children.length; c < len; c++) {
-        mount(children[c], el, isSvg) 
+        mount(children[c], el, isSvg, parent)
       }
       break
     case 'SingleChildren':
-      mount(children, el, isSvg) 
+      mount(children, el, isSvg, parent)
       break
     case 'Text':
-      mount(children, el) 
+      mount(children, el, false, parent) 
       break
     default:
       break

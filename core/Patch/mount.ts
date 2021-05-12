@@ -1,9 +1,12 @@
 import h from '../Render/render'
-import { createElement } from './createElement'
-import { mountChildren } from './createElement'
+import { mountChildren, createElement } from './createElement'
 
-function mountText(children, container) { // 挂载文本节点
+function mountText(children, container, parent?) { // 挂载文本节点
   const el = document.createTextNode(children)
+  console.log('p', parent)
+  if (parent && parent.flags === 'Portal') {
+    (parent.el || (parent.el = [])).push(el)
+  }
   container.appendChild(el)
 }
 
@@ -27,19 +30,20 @@ function mountFragment(vnode, container) {
       vnode.el = children.el
       break
     case 'Text':
-      vnode.el = children.el
+      vnode.el = container
       break
     default:
       break
   }
+
   container.appendChild(fragment)
 }
 
 function mountPortal(vnode) {
   const { children, childrenFlags, data: { target } } = vnode
-  vnode.el = document.querySelector(target)
+  mountChildren(children, document.querySelector(target), childrenFlags, false, vnode);
 
-  mountChildren(children, vnode.el, childrenFlags)
+  (vnode.el || (vnode.el = [])).push(...(Array.isArray(children) ? children : [children]).map(vChild => vChild.el).filter(Boolean))
 }
 
 function mountStatusComponent(vnode, container) {
@@ -60,7 +64,7 @@ function mountFunctionalComponent(vnode, container, isSvg) {
   vnode.el = $vnode.el
 }
 
-export default function mount(vnode, container, isSvg?) { // 渲染虚拟Dom
+export default function mount(vnode, container, isSvg?, parent?) { // 渲染虚拟Dom
   const flags = vnode.flags
   if (flags) {
     switch(flags) {
@@ -84,6 +88,6 @@ export default function mount(vnode, container, isSvg?) { // 渲染虚拟Dom
         break
     }
   } else if (['number', 'string'].some(v => typeof vnode === v)) {
-    mountText(vnode, container)
+    mountText(vnode, container, parent)
   }
 }

@@ -2,21 +2,24 @@
 exports.__esModule = true;
 var render_1 = require("../Render/render");
 var createElement_1 = require("./createElement");
-var createElement_2 = require("./createElement");
-function mountText(children, container) {
+function mountText(children, container, parent) {
     var el = document.createTextNode(children);
+    console.log('p', parent);
+    if (parent && parent.flags === 'Portal') {
+        (parent.el || (parent.el = [])).push(el);
+    }
     container.appendChild(el);
 }
 function mountElement(vnode, container, isSvg) {
     var children = vnode.children, childrenFlags = vnode.childrenFlags;
     var el = createElement_1.createElement(vnode, isSvg).el;
-    createElement_2.mountChildren(children, el, childrenFlags, isSvg);
+    createElement_1.mountChildren(children, el, childrenFlags, isSvg);
     container.appendChild(el);
 }
 function mountFragment(vnode, container) {
     var children = vnode.children, childrenFlags = vnode.childrenFlags;
     var fragment = document.createDocumentFragment();
-    createElement_2.mountChildren(children, fragment, childrenFlags);
+    createElement_1.mountChildren(children, fragment, childrenFlags);
     switch (childrenFlags) {
         case 'MutilpleChildren':
             vnode.el = children[0].el;
@@ -25,7 +28,7 @@ function mountFragment(vnode, container) {
             vnode.el = children.el;
             break;
         case 'Text':
-            vnode.el = children.el;
+            vnode.el = container;
             break;
         default:
             break;
@@ -33,9 +36,10 @@ function mountFragment(vnode, container) {
     container.appendChild(fragment);
 }
 function mountPortal(vnode) {
+    var _a;
     var children = vnode.children, childrenFlags = vnode.childrenFlags, target = vnode.data.target;
-    vnode.el = document.querySelector(target);
-    createElement_2.mountChildren(children, vnode.el, childrenFlags);
+    createElement_1.mountChildren(children, document.querySelector(target), childrenFlags, false, vnode);
+    (_a = (vnode.el || (vnode.el = []))).push.apply(_a, (Array.isArray(children) ? children : [children]).map(function (vChild) { return vChild.el; }).filter(Boolean));
 }
 function mountStatusComponent(vnode, container) {
     var instance = new vnode.tag();
@@ -53,7 +57,7 @@ function mountFunctionalComponent(vnode, container, isSvg) {
     mount($vnode, container, isSvg);
     vnode.el = $vnode.el;
 }
-function mount(vnode, container, isSvg) {
+function mount(vnode, container, isSvg, parent) {
     var flags = vnode.flags;
     if (flags) {
         switch (flags) {
@@ -78,7 +82,7 @@ function mount(vnode, container, isSvg) {
         }
     }
     else if (['number', 'string'].some(function (v) { return typeof vnode === v; })) {
-        mountText(vnode, container);
+        mountText(vnode, container, parent);
     }
 }
 exports["default"] = mount;

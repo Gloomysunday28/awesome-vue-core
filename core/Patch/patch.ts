@@ -1,14 +1,10 @@
 import { VnodeTypes } from '../Vnode/types/vnode.type'
-import { createElement, getAttributes } from './createElement'
+import { getAttributes } from './createElement'
 import mount from './mount'
 
 function addVnode(nvnode, pvnode: any = {}, container?) {
   switch (nvnode.flags) {
     case 'Normal':
-      addElement(nvnode, pvnode, container)
-      console.log(container)
-      console.log(nvnode)
-      console.log('p', pvnode)
       patchChildren(nvnode, pvnode, container)
       break
     case 'Text':
@@ -25,6 +21,7 @@ function removeVnode(vnode) {
   const { el } = vnode
   switch (vnode.flags) {
     case 'Text':
+      break
     case 'Normal':
       el.parentNode.removeChild(el)
       break
@@ -38,20 +35,35 @@ function removeElement(vnode) {
   el.parentNode.removeChild(el)
 }
 
-function addElement(nvnode, pvnode?, container?) {
-  const { el } = createElement(nvnode, nvnode.flags === 'Svg')
-
-  if (pvnode) {
-    pvnode.el.parentNode.insertBefore(el, pvnode.el.nextElementSibling)
-  } else if (container) {
-    container.appendChild(el)
+function replaceVnode(nvnode, pvnode, contianer?) {
+  if (nvnode.tag === pvnode.tag) {
+    nvnode.el = pvnode.el
+    nvnode.el.innerHTML = ''
+  } else {
+    removeVnode(pvnode)
+    addVnode(nvnode, null, contianer) // 这里会创建nvnode.el, 并且不会执行patchChildren, 这里将Children的收集放置到下面处理
   }
-}
 
-function replaceElement(pvnode, nvnode): unknown { // 替换元素
-  addVnode(nvnode, pvnode)
-  removeVnode(pvnode)
-  return 
+  switch(nvnode.childrenFlags) {
+    case 'Text':
+      nvnode.el.innerHTML = nvnode.children
+      break
+    default:
+      const children = Array.isArray(nvnode.children) ? nvnode.children : [nvnode.children]
+      children.forEach(child => {
+        patchChildren(child, null, nvnode.el)
+      })
+      break
+  }
+
+  const pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children]
+  pChildren.forEach(child => {
+    if (child.flags === 'Portal') {
+      (child.el || []).forEach(el => {
+        el.parentNode.removeChild(el)
+      })
+    }
+  })
 }
 
 function patchText(nvnode) {
@@ -63,7 +75,7 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
   const { childrenFlags: pChildrenFlags, children: pChildren } = pvnode || {}
 
   if (!pvnode) {
-    return mount(nvnode, container, nvnode.flag === 'Svg')
+    return mount(nvnode, container, nvnode.flags === 'Svg')
   }
 
   if (pChildrenFlags === 'NoChildren') {
@@ -71,14 +83,16 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
       case 'NoChildren':
         return
       case 'SingleChildren':
-        return patch(children, null, el)
+        return replaceVnode(nvnode, pvnode, pvnode.el)
       case 'MutilpleChildren':
         children.forEach(child => {
           patch(child, null, el)
         })
         return
       case 'Text':
-        addElement(nvnode, null, container)
+        if (children.flags === 'Normal') {
+          
+        }
         return patchText(nvnode)
       default:
         return
@@ -88,7 +102,7 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
       case 'NoChildren':
         return removeElement(pvnode)
       case 'SingleChildren':
-        return patch(children, pChildren)
+        return replaceVnode(nvnode, pvnode, pvnode.el)
       case 'MutilpleChildren':
         children.forEach(child => {
           patch(child, pChildren, el)
@@ -108,11 +122,10 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
         })
         return
       case 'SingleChildren':
-        pChildren.forEach(child => {
-          removeVnode(child)
-        })
-        return addElement(null, children, el)
+        replaceVnode(nvnode, pvnode, pvnode.el)
+        return
       case 'MutilpleChildren':
+        console.log('el', el)
         children.forEach(child => {
           patch(child, null, el)
         })
@@ -134,16 +147,9 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
         removeVnode(pChildren)
         return
       case 'SingleChildren':
-        return addVnode(children, null, el)
+        return replaceVnode(nvnode, pvnode, pvnode.el.parentNode)
       case 'MutilpleChildren':
-        children.forEach(child => {
-          patch(child, null, el)
-        })
-
-        pChildren.forEach(child => {
-          removeVnode(child)
-        })
-
+        replaceVnode(nvnode, pvnode)
         return
       case 'Text':
         nvnode.el = pvnode.el
@@ -157,14 +163,16 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
 
 function patchElement(nvnode, pvnode) {
   if (pvnode.tag !== nvnode.tag) {
-    return replaceElement(pvnode, nvnode) // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
+    return replaceVnode(nvnode, pvnode, pvnode.el) // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
   } else {
     if (pvnode.flags === nvnode.flags) { // vnode.flags代表当前vnode类型
       nvnode.el = pvnode.el
-      getAttributes(nvnode, pvnode)
+      if (nvnode.flags === 'Normal' || nvnode.flags === 'Svg') {
+        getAttributes(nvnode, pvnode)
+      }
       patchChildren(nvnode, pvnode, nvnode.el)
     } else {
-      return replaceElement(pvnode, nvnode)
+      return replaceVnode(nvnode, pvnode)
     }
   }
 }
