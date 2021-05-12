@@ -1,7 +1,7 @@
-import { VnodeTypes } from './types/vnode.type'
 import { removeDupSpaces } from '../../utils'
 import AweSomeVue from '../AweSomeVue'
 import h from '../Render/render'
+import { VnodeTypes } from './types/vnode.type'
 
 function getFlags(tag, data) {
   if (typeof tag === 'string') {

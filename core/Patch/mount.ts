@@ -1,65 +1,15 @@
 import h from '../Render/render'
-import { getHumpTransformReverse } from '../../utils'
-
-const needCurrentAttribute = /value|checked|selected|muted/
-function getAttributes(el, data) {
-  const { styles = {}, staticClass, ...rest } = data || {}
-
-  for (let key in styles) {
-    el.style[getHumpTransformReverse(key)] = typeof styles[key] === 'number' ? styles[key] + 'px' : styles[key]
-  }
-
-  if (staticClass) {
-    el.className = staticClass
-  }
-
-  for (let key in rest) {
-    if (key === 'on') {
-      if (Object.prototype.toString.call(rest[key]) !== '[object Object]') continue
-      const eventHandler = rest[key]
-      for (let event in eventHandler) {
-        el.addEventListener(event, eventHandler[event])
-      }
-    } else if (needCurrentAttribute.test(key)) {
-      el[key] = rest[key]
-    } else {
-      el.setAttribute(key, rest[key])
-    }
-  }
-}
+import { createElement } from './createElement'
+import { mountChildren } from './createElement'
 
 function mountText(children, container) { // 挂载文本节点
   const el = document.createTextNode(children)
   container.appendChild(el)
 }
 
-function mountChildren(children, el, childrenFlags, isSvg?) { // 挂载子节点
-  switch (childrenFlags) {
-    case 'MutilpleChildren':
-      for (let c = 0, len = children.length; c < len; c++) {
-        mount(children[c], el, isSvg) 
-      }
-      break
-    case 'SingleChildren':
-      mount(children, el, isSvg) 
-      break
-    case 'Text':
-      mount(children, el) 
-      break
-    default:
-      break
-  }
-}
-
 function mountElement(vnode, container, isSvg) { // 常规html挂载
-  const { tag, children, childrenFlags, data } = vnode
-  const el = isSvg ? 
-    document.createElementNS((data || {}).href || 'http://www.w3.org/1999/xhtml', tag)
-    : 
-    document.createElement(tag)
-  vnode.el = el
-
-  getAttributes(el, vnode.data)
+  const { children, childrenFlags } = vnode
+  const { el } = createElement(vnode, isSvg)
   mountChildren(children, el, childrenFlags, isSvg)
   container.appendChild(el)
 }
@@ -87,9 +37,9 @@ function mountFragment(vnode, container) {
 
 function mountPortal(vnode) {
   const { children, childrenFlags, data: { target } } = vnode
-  vnode.el = null
+  vnode.el = document.querySelector(target)
 
-  mountChildren(children, document.querySelector(target), childrenFlags)
+  mountChildren(children, vnode.el, childrenFlags)
 }
 
 function mountStatusComponent(vnode, container) {
@@ -97,6 +47,10 @@ function mountStatusComponent(vnode, container) {
   const instanceVnode = instance.render(h)
   mount(instanceVnode, container)
   instance.$el = vnode.el = instanceVnode.el
+  if (!instance.isMounted) {
+    instance.mounted && instance.mounted(instance)
+    instance.isMounted = true
+  }
 }
 
 function mountFunctionalComponent(vnode, container, isSvg) {

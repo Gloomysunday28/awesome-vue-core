@@ -16,12 +16,12 @@ var __extends = (this && this.__extends) || (function () {
 })();
 exports.__esModule = true;
 var render_1 = require("../Render/render");
-var mount_1 = require("../Patch/mount");
+var Patch_1 = require("../Patch");
 var component_1 = require("../Component/component");
 function AweSomeVue(option) {
-    var vnode = option.render(render_1["default"]);
-    mount_1["default"](vnode, option.el);
-    return vnode;
+    if (!this || this.constructor !== AweSomeVue)
+        throw new Error('[AweSomeVue]: Please new Function~');
+    this.init(option);
 }
 AweSomeVue.extend = function (option) {
     var SuperVue = /** @class */ (function (_super) {
@@ -35,4 +35,17 @@ AweSomeVue.extend = function (option) {
     }(component_1["default"]));
     return SuperVue;
 };
+AweSomeVue.prototype.init = function (option) {
+    var vnode = option.render(render_1["default"]);
+    this.renderAweSomeVue(vnode, option.el, this);
+    this.$vnode = vnode;
+    this.$el = vnode.el;
+    this.$option = option;
+    if (!this.isMounted) {
+        option.mounted && option.mounted(this);
+        this.isMounted = true;
+    }
+    return vnode;
+};
+AweSomeVue.prototype.renderAweSomeVue = Patch_1["default"];
 exports["default"] = AweSomeVue;
