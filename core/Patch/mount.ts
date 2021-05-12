@@ -47,6 +47,7 @@ function mountStatusComponent(vnode, container) {
   const instanceVnode = instance.render(h)
   mount(instanceVnode, container)
   instance.$el = vnode.el = instanceVnode.el
+  instance.$vnode = instanceVnode
   if (!instance.isMounted) {
     instance.mounted && instance.mounted(instance)
     instance.isMounted = true

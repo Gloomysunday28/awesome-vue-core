@@ -1,11 +1,13 @@
 "use strict";
 exports.__esModule = true;
 var createElement_1 = require("./createElement");
+var mount_1 = require("./mount");
 function addVnode(nvnode, pvnode, container) {
     if (pvnode === void 0) { pvnode = {}; }
     switch (nvnode.flags) {
         case 'Normal':
             addElement(nvnode, pvnode, container);
+            console.log(container);
             console.log(nvnode);
             console.log('p', pvnode);
             patchChildren(nvnode, pvnode, container);
@@ -44,7 +46,6 @@ function addElement(nvnode, pvnode, container) {
     }
 }
 function replaceElement(pvnode, nvnode) {
-    console.log('replace', pvnode);
     addVnode(nvnode, pvnode);
     removeVnode(pvnode);
     return;
@@ -55,6 +56,9 @@ function patchText(nvnode) {
 function patchChildren(nvnode, pvnode, container) {
     var _a = nvnode || {}, childrenFlags = _a.childrenFlags, children = _a.children, el = _a.el /* 父容器 */;
     var _b = pvnode || {}, pChildrenFlags = _b.childrenFlags, pChildren = _b.children;
+    if (!pvnode) {
+        return mount_1["default"](nvnode, container, nvnode.flag === 'Svg');
+    }
     if (pChildrenFlags === 'NoChildren') {
         switch (childrenFlags) {
             case 'NoChildren':
@@ -124,7 +128,6 @@ function patchChildren(nvnode, pvnode, container) {
                 removeVnode(pChildren);
                 return;
             case 'SingleChildren':
-                console.log('replapChildrenFlagsce', pvnode);
                 return addVnode(children, null, el);
             case 'MutilpleChildren':
                 children.forEach(function (child) {

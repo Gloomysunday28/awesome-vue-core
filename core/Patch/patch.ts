@@ -1,10 +1,12 @@
 import { VnodeTypes } from '../Vnode/types/vnode.type'
 import { createElement, getAttributes } from './createElement'
+import mount from './mount'
 
 function addVnode(nvnode, pvnode: any = {}, container?) {
   switch (nvnode.flags) {
     case 'Normal':
       addElement(nvnode, pvnode, container)
+      console.log(container)
       console.log(nvnode)
       console.log('p', pvnode)
       patchChildren(nvnode, pvnode, container)
@@ -59,6 +61,11 @@ function patchText(nvnode) {
 function patchChildren(nvnode, pvnode, container?) { // 处理子元素
   const { childrenFlags, children, el /* 父容器 */ } = nvnode || {}
   const { childrenFlags: pChildrenFlags, children: pChildren } = pvnode || {}
+
+  if (!pvnode) {
+    return mount(nvnode, container, nvnode.flag === 'Svg')
+  }
+
   if (pChildrenFlags === 'NoChildren') {
     switch (childrenFlags) {
       case 'NoChildren':
@@ -127,7 +134,6 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
         removeVnode(pChildren)
         return
       case 'SingleChildren':
-        console.log('replapChildrenFlagsce', pvnode)
         return addVnode(children, null, el)
       case 'MutilpleChildren':
         children.forEach(child => {
@@ -156,7 +162,6 @@ function patchElement(nvnode, pvnode) {
     if (pvnode.flags === nvnode.flags) { // vnode.flags代表当前vnode类型
       nvnode.el = pvnode.el
       getAttributes(nvnode, pvnode)
-      console.log(pvnode.el)
       patchChildren(nvnode, pvnode, nvnode.el)
     } else {
       return replaceElement(pvnode, nvnode)
