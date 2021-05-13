@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+var render_1 = require("../Render/render");
 var createElement_1 = require("./createElement");
 var mount_1 = require("./mount");
 function addVnode(nvnode, pvnode, container) {
@@ -36,34 +37,46 @@ function removeElement(vnode) {
 function replaceVnode(nvnode, pvnode, contianer) {
     if (nvnode.tag === pvnode.tag) {
         nvnode.el = pvnode.el;
-        nvnode.el.innerHTML = '';
     }
     else {
         removeVnode(pvnode);
         addVnode(nvnode, null, contianer); // 这里会创建nvnode.el, 并且不会执行patchChildren, 这里将Children的收集放置到下面处理
+        var pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children];
+        pChildren.forEach(function (child) {
+            if (child && child.flags === 'Portal') {
+                (child.el || []).forEach(function (el) {
+                    el.parentNode.removeChild(el);
+                });
+            }
+        });
     }
+    console.log('nvnode', nvnode);
+    console.log('pvnode', pvnode);
     switch (nvnode.childrenFlags) {
         case 'Text':
             nvnode.el.innerHTML = nvnode.children;
             break;
+        case 'SingleChildren':
+            patchChildren(nvnode.children, pvnode.children, nvnode.el);
+            break;
         default:
-            var children = Array.isArray(nvnode.children) ? nvnode.children : [nvnode.children];
+            var children = nvnode.children;
             children.forEach(function (child) {
-                patchChildren(child, null, nvnode.el);
+                patchChildren(child, pvnode.children, nvnode.el);
             });
             break;
     }
-    var pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children];
-    pChildren.forEach(function (child) {
-        if (child.flags === 'Portal') {
-            (child.el || []).forEach(function (el) {
-                el.parentNode.removeChild(el);
-            });
-        }
-    });
 }
 function patchText(nvnode) {
-    nvnode.el.innerHTML = nvnode.children;
+    if (nvnode.flags === 'Portal') {
+        var el = nvnode.el[0];
+        var text = document.createTextNode(nvnode.children);
+        el.parentNode.insertBefore(text, el);
+        el.remove();
+    }
+    else {
+        nvnode.el.innerHTML = nvnode.children;
+    }
 }
 function patchChildren(nvnode, pvnode, container) {
     var _a = nvnode || {}, childrenFlags = _a.childrenFlags, children = _a.children, el = _a.el /* 父容器 */;
@@ -73,7 +86,11 @@ function patchChildren(nvnode, pvnode, container) {
     }
     if (pChildrenFlags === 'NoChildren') {
         switch (childrenFlags) {
-            case 'NoChildren':
+            case 'NoChildren': // 两种情况， 一是都是组件类型, 而是没有children
+                if (pvnode.flags.includes('Component') && nvnode.flags.includes('Component')) {
+                    nvnode = new (nvnode.tag()).render(render_1["default"]);
+                    patch(nvnode, pvnode.instance.$vnode);
+                }
                 return;
             case 'SingleChildren':
                 return replaceVnode(nvnode, pvnode, pvnode.el);

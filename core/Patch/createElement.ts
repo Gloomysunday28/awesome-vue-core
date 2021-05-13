@@ -1,8 +1,9 @@
 import { getHumpTransformReverse } from '../../utils'
+import h from '../Render/render'
 import mount from './mount'
 
 const needCurrentAttribute = /value|checked|selected|muted/
-
+export const formTag = ['input', 'checkbox', 'radio']
 function processDomProperties(rest, el, handlerRest?) {
   for (let key in rest) {
     if (key === 'on') {
@@ -23,6 +24,72 @@ function processDomProperties(rest, el, handlerRest?) {
       }
     }
   }
+}
+
+
+export function mountText(children, container, parent?) { // 挂载文本节点
+  const el = document.createTextNode(children)
+  if (parent && parent.flags === 'Portal') {
+    (parent.el || (parent.el = [])).push(el)
+  }
+  container.appendChild(el)
+}
+
+export function mountFragment(vnode, container) {
+  const { children, childrenFlags } = vnode
+  const fragment = document.createDocumentFragment()
+
+  mountChildren(children, fragment, childrenFlags)
+  switch (childrenFlags) {
+    case 'MutilpleChildren':
+      vnode.el = children[0].el
+      break
+    case 'SingleChildren':
+      vnode.el = children.el
+      break
+    case 'Text':
+      vnode.el = container
+      break
+    default:
+      break
+  }
+
+  container.appendChild(fragment)
+}
+
+export function mountPortal(vnode) {
+  const { children, childrenFlags, data: { target } } = vnode
+  mountChildren(children, document.querySelector(target), childrenFlags, false, vnode);
+
+  (vnode.el || (vnode.el = [])).push(...(Array.isArray(children) ? children : [children]).map(vChild => vChild.el).filter(Boolean))
+}
+
+
+export function mountElement(vnode, container, isSvg) { // 常规html挂载
+  const { el } = createElement(vnode, isSvg)
+  container.appendChild(el)
+
+  return el
+}
+
+export function mountStatusComponent(vnode) {
+  const instance = vnode.instance = new vnode.tag()
+  const instanceVnode = instance.render(h)
+  instance.$el = vnode.el = instanceVnode.el
+  instance.$vnode = instanceVnode
+  if (!instance.isMounted) {
+    instance.mounted && instance.mounted(instance)
+    instance.isMounted = true
+  }
+
+  return instanceVnode
+}
+
+export function mountFunctionalComponent(vnode) {
+  const $vnode = vnode.tag()
+  vnode.el = $vnode.el
+
+  return $vnode
 }
 
 export function mountChildren(children, el, childrenFlags, isSvg?, parent?) { // 挂载子节点

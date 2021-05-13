@@ -37,10 +37,8 @@ AweSomeVue.extend = function (option) {
 };
 AweSomeVue.prototype.init = function (option) {
     var vnode = option.render(render_1["default"]);
-    console.log(123, this.$vnode);
     this.renderAweSomeVue(vnode, option.el, this);
     this.$vnode = vnode;
-    console.log(333, this.$vnode);
     this.$el = vnode.el;
     this.$option = option;
     if (!this.isMounted) {

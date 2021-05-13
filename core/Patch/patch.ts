@@ -1,4 +1,5 @@
 import { VnodeTypes } from '../Vnode/types/vnode.type'
+import h from '../Render/render'
 import { getAttributes } from './createElement'
 import mount from './mount'
 
@@ -38,36 +39,45 @@ function removeElement(vnode) {
 function replaceVnode(nvnode, pvnode, contianer?) {
   if (nvnode.tag === pvnode.tag) {
     nvnode.el = pvnode.el
-    nvnode.el.innerHTML = ''
   } else {
     removeVnode(pvnode)
     addVnode(nvnode, null, contianer) // 这里会创建nvnode.el, 并且不会执行patchChildren, 这里将Children的收集放置到下面处理
+    const pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children]
+    pChildren.forEach(child => {
+      if (child && child.flags === 'Portal') {
+        (child.el || []).forEach(el => {
+          el.parentNode.removeChild(el)
+        })
+      }
+    })
   }
-
+  console.log('nvnode', nvnode)
+  console.log('pvnode', pvnode)
   switch(nvnode.childrenFlags) {
     case 'Text':
       nvnode.el.innerHTML = nvnode.children
       break
+    case 'SingleChildren':
+      patchChildren(nvnode.children, pvnode.children, nvnode.el)
+      break
     default:
-      const children = Array.isArray(nvnode.children) ? nvnode.children : [nvnode.children]
+      const children = nvnode.children
       children.forEach(child => {
-        patchChildren(child, null, nvnode.el)
+        patchChildren(child, pvnode.children, nvnode.el)
       })
       break
   }
-
-  const pChildren = Array.isArray(pvnode.children) ? pvnode.children : [pvnode.children]
-  pChildren.forEach(child => {
-    if (child.flags === 'Portal') {
-      (child.el || []).forEach(el => {
-        el.parentNode.removeChild(el)
-      })
-    }
-  })
 }
 
 function patchText(nvnode) {
-  nvnode.el.innerHTML = nvnode.children
+  if (nvnode.flags === 'Portal') {
+    const el = nvnode.el[0]
+    const text = document.createTextNode(nvnode.children)
+    el.parentNode.insertBefore(text, el)
+    el.remove()
+  } else {
+    nvnode.el.innerHTML = nvnode.children
+  }
 }
 
 function patchChildren(nvnode, pvnode, container?) { // 处理子元素
@@ -80,7 +90,11 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
 
   if (pChildrenFlags === 'NoChildren') {
     switch (childrenFlags) {
-      case 'NoChildren':
+      case 'NoChildren': // 两种情况， 一是都是组件类型, 而是没有children
+        if (pvnode.flags.includes('Component') && nvnode.flags.includes('Component')) {
+          nvnode = new (nvnode.tag()).render(h)
+          patch(nvnode, pvnode.instance.$vnode)
+        }
         return
       case 'SingleChildren':
         return replaceVnode(nvnode, pvnode, pvnode.el)

@@ -21,11 +21,9 @@ AweSomeVue.extend = function(option) {
 
 AweSomeVue.prototype.init = function(option) {
   const vnode = option.render(h)
-  console.log(123, this.$vnode)
   this.renderAweSomeVue(vnode, option.el, this)
   
   this.$vnode = vnode
-  console.log(333, this.$vnode)
   this.$el = vnode.el
   this.$option = option
   if (!this.isMounted) {
