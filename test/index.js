@@ -12,7 +12,7 @@ var App = {
 var instance = new AweSomeVue_1["default"]({
     el: document.getElementsByTagName('div')[0],
     render: function (h) {
-        return h('div', { staticClass: 'bem' }, h(Fragment, null, 'oldCHildren'));
+        return h('div', { staticClass: 'bem' }, h(App, { value: 'App' }, null));
     }
 });
 setTimeout(function () {
@@ -22,7 +22,7 @@ setTimeout(function () {
     instance.init({
         el: instance.$el,
         render: function (h) {
-            return h('div', { staticClass: 'bem' }, h(Fragment, null, 'oldCHildren'));
+            return h('div', { staticClass: 'bem' }, h(App, { value: 'App2' }, null));
         }
     });
 }, 1500);

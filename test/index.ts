@@ -11,7 +11,7 @@ const App = {
 const instance = new AweSomeVue({
   el: document.getElementsByTagName('div')[0],
   render(h) {
-    return h('div', { staticClass: 'bem' }, h('input', { value: 'App' }, null))
+    return h('div', { staticClass: 'bem' }, h(App, { value: 'App' }, null))
   }
 })
 setTimeout(() => {
@@ -21,7 +21,7 @@ setTimeout(() => {
   instance.init({
     el: instance.$el,
     render(h) {
-      return h('div', { staticClass: 'bem' }, h('input', { value: 'App2' }, null))
+      return h('div', { staticClass: 'bem' }, h(App, { value: 'App2' }, null))
     }
   })
 }, 1500)

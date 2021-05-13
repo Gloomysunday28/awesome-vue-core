@@ -83,14 +83,17 @@ function mountElement(vnode, container, isSvg) {
 exports.mountElement = mountElement;
 function mountStatusComponent(vnode) {
     var instance = vnode.instance = new vnode.tag();
-    var instanceVnode = instance.render(render_1["default"]);
-    instance.$el = vnode.el = instanceVnode.el;
-    instance.$vnode = instanceVnode;
-    if (!instance.isMounted) {
-        instance.mounted && instance.mounted(instance);
-        instance.isMounted = true;
-    }
-    return instanceVnode;
+    instance._update = function () {
+        var instanceVnode = instance.render(render_1["default"]);
+        instance.$el = vnode.el = instanceVnode.el;
+        instance.$vnode = instanceVnode;
+        if (!instance.isMounted) {
+            instance.mounted && instance.mounted(instance);
+            instance.isMounted = true;
+        }
+        return instanceVnode;
+    };
+    return instance._update();
 }
 exports.mountStatusComponent = mountStatusComponent;
 function mountFunctionalComponent(vnode) {

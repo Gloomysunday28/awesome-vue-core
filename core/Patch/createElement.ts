@@ -74,15 +74,19 @@ export function mountElement(vnode, container, isSvg) { // 常规html挂载
 
 export function mountStatusComponent(vnode) {
   const instance = vnode.instance = new vnode.tag()
-  const instanceVnode = instance.render(h)
-  instance.$el = vnode.el = instanceVnode.el
-  instance.$vnode = instanceVnode
-  if (!instance.isMounted) {
-    instance.mounted && instance.mounted(instance)
-    instance.isMounted = true
+  instance._update = function() {
+    const instanceVnode = instance.render(h)
+    instance.$el = vnode.el = instanceVnode.el
+    instance.$vnode = instanceVnode
+    if (!instance.isMounted) {
+      instance.mounted && instance.mounted(instance)
+      instance.isMounted = true
+    }
+
+    return instanceVnode
   }
 
-  return instanceVnode
+  return instance._update()
 }
 
 export function mountFunctionalComponent(vnode) {
