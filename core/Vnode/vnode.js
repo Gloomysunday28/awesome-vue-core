@@ -88,6 +88,7 @@ var Vnode = /** @class */ (function () {
         this.slots = null;
         this.flags = null;
         this.childrenFlags = null;
+        console.log(children);
         this.tag = typeof tag === 'object' ? (tag.functional ? createFunctionalComponent(tag) : AweSomeVue_1["default"].extend(tag)) : tag;
         this.data = getTransfromData(data);
         this.children = children;

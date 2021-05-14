@@ -1,5 +1,4 @@
 import { getHumpTransformReverse } from '../../utils'
-import h from '../Render/render'
 import mount from './mount'
 
 const needCurrentAttribute = /value|checked|selected|muted/
@@ -70,30 +69,6 @@ export function mountElement(vnode, container, isSvg) { // 常规html挂载
   container.appendChild(el)
 
   return el
-}
-
-export function mountStatusComponent(vnode) {
-  const instance = vnode.instance = new vnode.tag()
-  instance._update = function() {
-    const instanceVnode = instance.render(h)
-    instance.$el = vnode.el = instanceVnode.el
-    instance.$vnode = instanceVnode
-    if (!instance.isMounted) {
-      instance.mounted && instance.mounted(instance)
-      instance.isMounted = true
-    }
-
-    return instanceVnode
-  }
-
-  return instance._update()
-}
-
-export function mountFunctionalComponent(vnode) {
-  const $vnode = vnode.tag()
-  vnode.el = $vnode.el
-
-  return $vnode
 }
 
 export function mountChildren(children, el, childrenFlags, isSvg?, parent?) { // 挂载子节点

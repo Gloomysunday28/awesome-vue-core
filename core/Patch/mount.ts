@@ -1,9 +1,10 @@
-import { mountChildren, mountElement, mountFunctionalComponent, mountStatusComponent, mountFragment, mountPortal, mountText } from './createElement'
+import { mountChildren, mountElement, mountFragment, mountPortal, mountText } from './createElement'
+import { mountFunctionalComponent, mountStatusComponent } from './createComponent'
 
 export default function mount(vnode, container, isSvg?, parent?) { // 渲染虚拟Dom
   const flags = vnode.flags
   isSvg = isSvg || flags === 'Svg'
-  const { children, childrenFlags } = vnode
+  
   if (flags) {
     switch(flags) {
       case 'Normal':

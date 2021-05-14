@@ -1,6 +1,5 @@
 "use strict";
 exports.__esModule = true;
-var render_1 = require("../Render/render");
 var createElement_1 = require("./createElement");
 var mount_1 = require("./mount");
 function addVnode(nvnode, pvnode, container) {
@@ -50,8 +49,6 @@ function replaceVnode(nvnode, pvnode, contianer) {
             }
         });
     }
-    console.log('nvnode', nvnode);
-    console.log('pvnode', pvnode);
     switch (nvnode.childrenFlags) {
         case 'Text':
             nvnode.el.innerHTML = nvnode.children;
@@ -60,7 +57,7 @@ function replaceVnode(nvnode, pvnode, contianer) {
             patchChildren(nvnode.children, pvnode.children, nvnode.el);
             break;
         default:
-            var children = nvnode.children;
+            var children = nvnode.children || [];
             children.forEach(function (child) {
                 patchChildren(child, pvnode.children, nvnode.el);
             });
@@ -88,8 +85,9 @@ function patchChildren(nvnode, pvnode, container) {
         switch (childrenFlags) {
             case 'NoChildren': // 两种情况， 一是都是组件类型, 而是没有children
                 if (pvnode.flags.includes('Component') && nvnode.flags.includes('Component')) {
-                    nvnode = new (nvnode.tag()).render(render_1["default"]);
-                    patch(nvnode, pvnode.instance.$vnode);
+                    nvnode.instance = pvnode.instance;
+                    nvnode.instance.render = nvnode.tag.prototype.render;
+                    nvnode.instance._update(nvnode);
                 }
                 return;
             case 'SingleChildren':
@@ -171,9 +169,9 @@ function patchChildren(nvnode, pvnode, container) {
         }
     }
 }
-function patchElement(nvnode, pvnode) {
+function patchElement(nvnode, pvnode, container) {
     if (pvnode.tag !== nvnode.tag) {
-        return replaceVnode(nvnode, pvnode, pvnode.el); // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
+        return replaceVnode(nvnode, pvnode, container); // tag是每一个vnode的类型，当类型不同的情况下替换新旧节点
     }
     else {
         if (pvnode.flags === nvnode.flags) { // vnode.flags代表当前vnode类型
@@ -192,7 +190,7 @@ function patch(nvnode, pvnode, container) {
     if (pvnode) {
         if (nvnode) {
             nvnode.el = pvnode.el;
-            patchElement(nvnode, pvnode);
+            patchElement(nvnode, pvnode, container);
         }
         else {
             removeVnode(pvnode); // 若是新节点不存在旧节点存在，那么删除旧节点

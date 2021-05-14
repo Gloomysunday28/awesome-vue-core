@@ -76,6 +76,7 @@ function createFunctionalComponent(option) {
 
 export class Vnode implements VnodeTypes {
   constructor(tag, data, children) {
+    console.log(children)
     this.tag = typeof tag === 'object' ? (tag.functional ? createFunctionalComponent(tag) : AweSomeVue.extend(tag)) : tag
     this.data = getTransfromData(data)
     this.children = children

@@ -16,6 +16,7 @@ AweSomeVue.extend = function(option) {
     }
   }
 
+  SuperVue.prototype = option
   return SuperVue
 }
 

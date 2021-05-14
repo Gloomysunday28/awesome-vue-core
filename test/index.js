@@ -5,24 +5,40 @@ var Fragment = Symbol('Fragment');
 var Portal = Symbol('Portal');
 var App = {
     name: 'App',
+    data: function () {
+        return {
+            count: 1
+        };
+    },
+    mounted: function () {
+        setTimeout(function () {
+            // this.$props.text = 'text1'
+            // this._update()
+        }, 1500);
+        console.log('mounted');
+    },
+    updated: function () {
+        console.log('updated');
+    },
     render: function (h) {
-        return h('input', { value: 'App' }, 'App');
+        return h('div', { value: this.$props.text }, this.$props.text);
     }
 };
 var instance = new AweSomeVue_1["default"]({
     el: document.getElementsByTagName('div')[0],
     render: function (h) {
-        return h('div', { staticClass: 'bem' }, h(App, { value: 'App' }, null));
+        return h('div', { staticClass: 'bem' }, h(App, { props: { text: 'text' } }, null));
     }
 });
-setTimeout(function () {
-    App.render = function (h) {
-        return h('input', { value: 'App2' }, null);
-    };
-    instance.init({
-        el: instance.$el,
-        render: function (h) {
-            return h('div', { staticClass: 'bem' }, h(App, { value: 'App2' }, null));
-        }
-    });
-}, 1500);
+// setTimeout(() => {
+//   App.render = function(h) {
+//     console.log(this.$props)
+//     return h('input', { value: this.$props.text }, null)
+//   }
+//   instance.init({
+//     el: instance.$el,
+//     render(h) {
+//       return h('div', { staticClass: 'bem' }, h(App, { props: { text: 'text' } }, null))
+//     }
+//   })
+// }, 1500)

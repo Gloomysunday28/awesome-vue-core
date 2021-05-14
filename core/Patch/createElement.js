@@ -11,9 +11,8 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 exports.__esModule = true;
-exports.createElement = exports.getAttributes = exports.mountChildren = exports.mountFunctionalComponent = exports.mountStatusComponent = exports.mountElement = exports.mountPortal = exports.mountFragment = exports.mountText = exports.formTag = void 0;
+exports.createElement = exports.getAttributes = exports.mountChildren = exports.mountElement = exports.mountPortal = exports.mountFragment = exports.mountText = exports.formTag = void 0;
 var utils_1 = require("../../utils");
-var render_1 = require("../Render/render");
 var mount_1 = require("./mount");
 var needCurrentAttribute = /value|checked|selected|muted/;
 exports.formTag = ['input', 'checkbox', 'radio'];
@@ -81,27 +80,6 @@ function mountElement(vnode, container, isSvg) {
     return el;
 }
 exports.mountElement = mountElement;
-function mountStatusComponent(vnode) {
-    var instance = vnode.instance = new vnode.tag();
-    instance._update = function () {
-        var instanceVnode = instance.render(render_1["default"]);
-        instance.$el = vnode.el = instanceVnode.el;
-        instance.$vnode = instanceVnode;
-        if (!instance.isMounted) {
-            instance.mounted && instance.mounted(instance);
-            instance.isMounted = true;
-        }
-        return instanceVnode;
-    };
-    return instance._update();
-}
-exports.mountStatusComponent = mountStatusComponent;
-function mountFunctionalComponent(vnode) {
-    var $vnode = vnode.tag();
-    vnode.el = $vnode.el;
-    return $vnode;
-}
-exports.mountFunctionalComponent = mountFunctionalComponent;
 function mountChildren(children, el, childrenFlags, isSvg, parent) {
     switch (childrenFlags) {
         case 'MutilpleChildren':

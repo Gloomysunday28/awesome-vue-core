@@ -33,6 +33,7 @@ AweSomeVue.extend = function (option) {
         }
         return SuperVue;
     }(component_1["default"]));
+    SuperVue.prototype = option;
     return SuperVue;
 };
 AweSomeVue.prototype.init = function (option) {

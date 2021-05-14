@@ -1,10 +1,10 @@
 "use strict";
 exports.__esModule = true;
 var createElement_1 = require("./createElement");
+var createComponent_1 = require("./createComponent");
 function mount(vnode, container, isSvg, parent) {
     var flags = vnode.flags;
     isSvg = isSvg || flags === 'Svg';
-    var children = vnode.children, childrenFlags = vnode.childrenFlags;
     if (flags) {
         switch (flags) {
             case 'Normal':
@@ -18,10 +18,10 @@ function mount(vnode, container, isSvg, parent) {
                 createElement_1.mountPortal(vnode);
                 break;
             case 'StatusComponent':
-                mount(createElement_1.mountStatusComponent(vnode), container);
+                mount(createComponent_1.mountStatusComponent(vnode), container);
                 break;
             case 'FunctionalComponent':
-                mount(createElement_1.mountFunctionalComponent(vnode), container, isSvg);
+                mount(createComponent_1.mountFunctionalComponent(vnode), container, isSvg);
                 break;
             default:
                 break;
