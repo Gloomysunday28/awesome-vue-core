@@ -40,7 +40,7 @@ function getChildrenFlags(children) {
     else if (Object.prototype.toString.call(children) === '[object Object]') {
         return 'SingleChildren';
     }
-    else if (typeof children === 'string') {
+    else if (typeof children === 'string' || typeof children === 'number') {
         return 'Text';
     }
     else {
@@ -88,7 +88,6 @@ var Vnode = /** @class */ (function () {
         this.slots = null;
         this.flags = null;
         this.childrenFlags = null;
-        console.log(children);
         this.tag = typeof tag === 'object' ? (tag.functional ? createFunctionalComponent(tag) : AweSomeVue_1["default"].extend(tag)) : tag;
         this.data = getTransfromData(data);
         this.children = children;

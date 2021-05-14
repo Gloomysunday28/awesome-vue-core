@@ -32,7 +32,7 @@ function getChildrenFlags(children) {
     return 'MutilpleChildren'
   } else if (Object.prototype.toString.call(children) === '[object Object]') {
     return 'SingleChildren'
-  } else if (typeof children === 'string') {
+  } else if (typeof children === 'string' || typeof children === 'number') {
     return 'Text'
   } else {
     return 'NoChildren'
@@ -76,7 +76,6 @@ function createFunctionalComponent(option) {
 
 export class Vnode implements VnodeTypes {
   constructor(tag, data, children) {
-    console.log(children)
     this.tag = typeof tag === 'object' ? (tag.functional ? createFunctionalComponent(tag) : AweSomeVue.extend(tag)) : tag
     this.data = getTransfromData(data)
     this.children = children

@@ -1,5 +1,6 @@
 "use strict";
 exports.__esModule = true;
+var NextTick_1 = require("../NextTick");
 var Dep = /** @class */ (function () {
     function Dep() {
         this.subs = [];
@@ -13,6 +14,7 @@ var Dep = /** @class */ (function () {
         this.subs.forEach(function (watcher) {
             watcher.update();
         });
+        NextTick_1["default"]();
     };
     return Dep;
 }());

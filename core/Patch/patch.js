@@ -87,6 +87,7 @@ function patchChildren(nvnode, pvnode, container) {
                 if (pvnode.flags.includes('Component') && nvnode.flags.includes('Component')) {
                     nvnode.instance = pvnode.instance;
                     nvnode.instance.render = nvnode.tag.prototype.render;
+                    console.log('noChildren');
                     nvnode.instance._update(nvnode);
                 }
                 return;
@@ -187,6 +188,7 @@ function patchElement(nvnode, pvnode, container) {
     }
 }
 function patch(nvnode, pvnode, container) {
+    console.log('vnode123132', nvnode);
     if (pvnode) {
         if (nvnode) {
             nvnode.el = pvnode.el;

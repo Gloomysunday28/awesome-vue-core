@@ -1,3 +1,5 @@
+import flushCallbacks from '../NextTick'
+
 export default class Dep {
   subs = []
   constructor() {}
@@ -11,5 +13,6 @@ export default class Dep {
     this.subs.forEach((watcher) => {
       watcher.update()
     })
+    flushCallbacks()
   }
 }

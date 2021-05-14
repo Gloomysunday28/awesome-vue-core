@@ -1,12 +1,11 @@
 import Observer from '../Reactive/Observer'
 import h from '../Render/render'
-import mount from './mount'
 import patch from './patch'
 import Watcher from '../Reactive/Watcher'
 
 export function mountStatusComponent(vnode) {
   const instance = vnode.instance = new vnode.tag()
-  const $data = instance.data(instance)
+  const $data = instance.$data = instance.data(instance)
   instance.$props = vnode.data.props || {}
   new Observer($data, instance)
   // new Observer(instance.$props, instance)

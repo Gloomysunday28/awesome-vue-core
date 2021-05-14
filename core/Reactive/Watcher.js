@@ -1,7 +1,9 @@
 "use strict";
 exports.__esModule = true;
+var uid = 0;
 var Watcher = /** @class */ (function () {
     function Watcher(getter, option) {
+        this.uid = uid++;
         this.deps = [];
         this.getter = null;
         window.globalWatcher = this;
@@ -9,6 +11,7 @@ var Watcher = /** @class */ (function () {
         if (typeof getter === 'function') {
             return getter();
         }
+        window.globalWatcher = null;
     }
     Watcher.prototype.addDep = function (dep) {
         if (this.deps.includes(dep))
@@ -16,7 +19,7 @@ var Watcher = /** @class */ (function () {
         this.deps.push(dep);
     };
     Watcher.prototype.update = function () {
-        this.getter();
+        (window.callbacks || (window.callbacks = [])).push(this.getter);
     };
     return Watcher;
 }());

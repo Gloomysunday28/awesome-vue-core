@@ -6,13 +6,12 @@ const App = {
   name: 'App',
   data() {
     return {
-      count:1
+      stars: [1, 2, 3]
     }
   },
   mounted(){
     setTimeout(() => {
-      this.$props.text = 'text1'
-      this._update()
+      this.stars.push(4)
     }, 1500)
     console.log('mounted')
   },
@@ -20,7 +19,7 @@ const App = {
     console.log('updated')
   },
   render(h) {
-    return h('div', {value: this.$props.text}, this.$props.text)
+    return h('div', {value: this.$props.text}, this.stars.map(v => v))
   }
 }
 const instance = new AweSomeVue({

@@ -7,7 +7,7 @@ var patch_1 = require("./patch");
 var Watcher_1 = require("../Reactive/Watcher");
 function mountStatusComponent(vnode) {
     var instance = vnode.instance = new vnode.tag();
-    var $data = instance.data(instance);
+    var $data = instance.$data = instance.data(instance);
     instance.$props = vnode.data.props || {};
     new Observer_1["default"]($data, instance);
     // new Observer(instance.$props, instance)

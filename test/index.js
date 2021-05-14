@@ -7,13 +7,13 @@ var App = {
     name: 'App',
     data: function () {
         return {
-            count: 1
+            stars: [1, 2, 3]
         };
     },
     mounted: function () {
+        var _this = this;
         setTimeout(function () {
-            // this.$props.text = 'text1'
-            // this._update()
+            _this.stars.push(4);
         }, 1500);
         console.log('mounted');
     },
@@ -21,7 +21,7 @@ var App = {
         console.log('updated');
     },
     render: function (h) {
-        return h('div', { value: this.$props.text }, this.$props.text);
+        return h('div', { value: this.$props.text }, this.stars.map(function (v) { return v; }));
     }
 };
 var instance = new AweSomeVue_1["default"]({

@@ -4,7 +4,6 @@ import { mountFunctionalComponent, mountStatusComponent } from './createComponen
 export default function mount(vnode, container, isSvg?, parent?) { // 渲染虚拟Dom
   const flags = vnode.flags
   isSvg = isSvg || flags === 'Svg'
-  
   if (flags) {
     switch(flags) {
       case 'Normal':
