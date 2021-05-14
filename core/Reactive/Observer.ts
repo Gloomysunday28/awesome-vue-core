@@ -2,15 +2,13 @@ import Dep from './Dep'
 
 const catchSelfArrayApi = ['push', 'splice', 'sort', 'reverse', 'pop', 'shift', 'unshift']
 class ObserverData {
-  constructor(data, key, value) {
-    const dep = new Dep()
-    data.__ob__.dep = dep
-
-    new Observer(value)
+  constructor(data, key, value, dep) {
+    new Observer(value, null, dep)
     Object.defineProperty(data, key, {
       configurable: true,
       enumerable: true,
       get(): any {
+        console.log(1111)
         dep.addWatcher()
 
         return value
@@ -18,7 +16,7 @@ class ObserverData {
       set(newValue) {
         if (value === newValue || (value !== value && newValue !== newValue)) return
         value = newValue
-        new Observer(value)
+        new Observer(value, null, dep)
         
         dep.notify()
       }
@@ -39,35 +37,35 @@ function proxyData(data, key, instance) {
 }
 
 export default class Observer {
-  constructor(data, instance?) {
-    if (Object.prototype.toString.call(data) !== '[object Object]' || !Array.isArray(data)) return void 0
-    
-    this.initData(data, instance)
-  }
-  initData(data, instance?) {
+  constructor(data, instance?, dep?) {
+    if (typeof data !== 'object') return void 0
+    dep = dep || new Dep()
     data.__ob__ = {
-      observer: this
+      observer: this,
+      dep
     }
+
+    this.initData(data, instance, dep)
+  }
+  initData(data, instance?, dep?) {
     for (let key in data) {
       if (key === '__ob__') continue
       
       proxyData(data, key, instance)
-      if (Array.isArray(data)) {
-        this.walkData(data)
+      if (Array.isArray(data[key])) {
+        this.walkData(data[key], dep)
       } else {
-        new ObserverData(data, key, data[key])
+        new ObserverData(data, key, data[key], dep)
       }
     }
   }
-  walkData(data) {
-    const dep = new Dep()
-    data.__ob__.dep = dep
-
+  walkData(data, dep) {
+    console.log(11, dep)
     catchSelfArrayApi.forEach(api => {
-      const originFn = data[api]
+      const originFn = data[api].bind(data)
       data[api] = function(...fields) {
-        const rest = originFn.apply(null, arguments)
-        
+        const rest = originFn.apply(null, fields)
+
         switch (api) {
           case 'push':
           case 'unshift':

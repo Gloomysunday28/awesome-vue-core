@@ -3,14 +3,13 @@ exports.__esModule = true;
 var Dep_1 = require("./Dep");
 var catchSelfArrayApi = ['push', 'splice', 'sort', 'reverse', 'pop', 'shift', 'unshift'];
 var ObserverData = /** @class */ (function () {
-    function ObserverData(data, key, value) {
-        var dep = new Dep_1["default"]();
-        data.__ob__.dep = dep;
-        new Observer(value);
+    function ObserverData(data, key, value, dep) {
+        new Observer(value, null, dep);
         Object.defineProperty(data, key, {
             configurable: true,
             enumerable: true,
             get: function () {
+                console.log(1111);
                 dep.addWatcher();
                 return value;
             },
@@ -18,7 +17,7 @@ var ObserverData = /** @class */ (function () {
                 if (value === newValue || (value !== value && newValue !== newValue))
                     return;
                 value = newValue;
-                new Observer(value);
+                new Observer(value, null, dep);
                 dep.notify();
             }
         });
@@ -38,38 +37,39 @@ function proxyData(data, key, instance) {
     });
 }
 var Observer = /** @class */ (function () {
-    function Observer(data, instance) {
-        if (Object.prototype.toString.call(data) !== '[object Object]' || !Array.isArray(data))
+    function Observer(data, instance, dep) {
+        if (typeof data !== 'object')
             return void 0;
-        this.initData(data, instance);
-    }
-    Observer.prototype.initData = function (data, instance) {
+        dep = dep || new Dep_1["default"]();
         data.__ob__ = {
-            observer: this
+            observer: this,
+            dep: dep
         };
+        this.initData(data, instance, dep);
+    }
+    Observer.prototype.initData = function (data, instance, dep) {
         for (var key in data) {
             if (key === '__ob__')
                 continue;
             proxyData(data, key, instance);
-            if (Array.isArray(data)) {
-                this.walkData(data);
+            if (Array.isArray(data[key])) {
+                this.walkData(data[key], dep);
             }
             else {
-                new ObserverData(data, key, data[key]);
+                new ObserverData(data, key, data[key], dep);
             }
         }
     };
-    Observer.prototype.walkData = function (data) {
-        var dep = new Dep_1["default"]();
-        data.__ob__.dep = dep;
+    Observer.prototype.walkData = function (data, dep) {
+        console.log(11, dep);
         catchSelfArrayApi.forEach(function (api) {
-            var originFn = data[api];
+            var originFn = data[api].bind(data);
             data[api] = function () {
                 var fields = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
                     fields[_i] = arguments[_i];
                 }
-                var rest = originFn.apply(null, arguments);
+                var rest = originFn.apply(null, fields);
                 switch (api) {
                     case 'push':
                     case 'unshift':

@@ -19,6 +19,7 @@ const App = {
     console.log('updated')
   },
   render(h) {
+    console.log(this)
     return h('div', {value: this.$props.text}, this.stars.map(v => v))
   }
 }

@@ -21,6 +21,7 @@ var App = {
         console.log('updated');
     },
     render: function (h) {
+        console.log(this);
         return h('div', { value: this.$props.text }, this.stars.map(function (v) { return v; }));
     }
 };
