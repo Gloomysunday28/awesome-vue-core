@@ -10,7 +10,7 @@ function mountStatusComponent(vnode) {
     var $data = instance.$data = instance.data(instance);
     instance.$props = vnode.data.props || {};
     new Observer_1["default"]($data, instance);
-    // new Observer(instance.$props, instance)
+    new Observer_1["default"](instance.$props, instance);
     instance._update = function () {
         var instanceVnode = instance.render.call(instance, render_1["default"]);
         if (instance.isMounted) {

@@ -1,10 +1,12 @@
 import nextTick from './nextTick'
-var canFlushCallback = true
+import { setFlushCallback } from '../globalSwitch'
+
+const canFlushCallback = (window as any).canFlushCallback
 export default function flushCallbacks() {
   if (!canFlushCallback) return 
   
   const callbacks = (window as any).callbacks
-  canFlushCallback = false
+  setFlushCallback()
   if (callbacks && Array.isArray(callbacks)) {
     callbacks.sort((a, b) => a.uid - b.uid ? -1 : 1)
     Promise.resolve().then(() => {
@@ -12,7 +14,7 @@ export default function flushCallbacks() {
       while (callback = callbacks.shift()) {
         nextTick(callback)
       }
-      canFlushCallback = true
+      setFlushCallback()
     })
   }
 }

@@ -17,6 +17,10 @@ export default class Watcher {
     this.deps.push(dep)
   }
   update() {
-    ((window as any).callbacks || ((window as any).callbacks = [])).push(this.getter)
+    (window as any).callbacks = (window as any).callbacks || []
+    const callbacks = (window as any).callbacks
+    if (!callbacks.includes(this.getter)) {
+      callbacks.push(this.getter)
+    }
   }
 }

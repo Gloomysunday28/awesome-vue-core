@@ -7,22 +7,21 @@ var App = {
     name: 'App',
     data: function () {
         return {
-            stars: [1, 2, 3]
+            stars: [{ name: 1 }]
         };
     },
     mounted: function () {
         var _this = this;
         setTimeout(function () {
-            _this.stars.push(4);
+            _this.text = 2;
         }, 1500);
-        console.log('mounted');
     },
     updated: function () {
         console.log('updated');
     },
     render: function (h) {
         console.log(this);
-        return h('div', { value: this.$props.text }, this.stars.map(function (v) { return v; }));
+        return h('div', { value: this.stars.map(function (v) { return v.name; }).join('') }, this.text);
     }
 };
 var instance = new AweSomeVue_1["default"]({

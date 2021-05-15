@@ -19,7 +19,11 @@ var Watcher = /** @class */ (function () {
         this.deps.push(dep);
     };
     Watcher.prototype.update = function () {
-        (window.callbacks || (window.callbacks = [])).push(this.getter);
+        window.callbacks = window.callbacks || [];
+        var callbacks = window.callbacks;
+        if (!callbacks.includes(this.getter)) {
+            callbacks.push(this.getter);
+        }
     };
     return Watcher;
 }());

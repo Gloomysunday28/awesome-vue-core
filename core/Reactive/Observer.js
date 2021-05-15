@@ -2,6 +2,7 @@
 exports.__esModule = true;
 var Dep_1 = require("./Dep");
 var catchSelfArrayApi = ['push', 'splice', 'sort', 'reverse', 'pop', 'shift', 'unshift'];
+var originArrayApi = ['map', 'forEach', 'filter', 'concat', 'some', 'every'];
 var ObserverData = /** @class */ (function () {
     function ObserverData(data, key, value, dep) {
         new Observer(value, null, dep);
@@ -9,7 +10,6 @@ var ObserverData = /** @class */ (function () {
             configurable: true,
             enumerable: true,
             get: function () {
-                console.log(1111);
                 dep.addWatcher();
                 return value;
             },
@@ -61,10 +61,10 @@ var Observer = /** @class */ (function () {
         }
     };
     Observer.prototype.walkData = function (data, dep) {
-        console.log(11, dep);
+        var catchApis = {};
         catchSelfArrayApi.forEach(function (api) {
             var originFn = data[api].bind(data);
-            data[api] = function () {
+            catchApis[api] = function () {
                 var fields = [];
                 for (var _i = 0; _i < arguments.length; _i++) {
                     fields[_i] = arguments[_i];
@@ -73,10 +73,15 @@ var Observer = /** @class */ (function () {
                 switch (api) {
                     case 'push':
                     case 'unshift':
-                        new Observer(fields[0]);
+                        fields.forEach(function (filed) {
+                            new Observer(filed);
+                        });
                         break;
                     case 'splice':
-                        new Observer(fields[2]);
+                        fields = fields.slice(2);
+                        fields.forEach(function (filed) {
+                            new Observer(filed);
+                        });
                         break;
                     default:
                         break;
@@ -85,6 +90,23 @@ var Observer = /** @class */ (function () {
                 return rest;
             };
         });
+        originArrayApi.forEach(function (api) {
+            var originFn = data[api].bind(data);
+            catchApis[api] = function () {
+                var fields = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    fields[_i] = arguments[_i];
+                }
+                var rest = originFn.apply(null, fields);
+                dep.addWatcher();
+                return rest;
+            };
+        });
+        Object.setPrototypeOf(catchApis, Array.prototype);
+        Object.setPrototypeOf(data, catchApis);
+        for (var n = data.length, i = n - 1; i >= 0; i--) {
+            new Observer(data[i], null, dep);
+        }
     };
     return Observer;
 }());

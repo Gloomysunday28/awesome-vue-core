@@ -2,13 +2,16 @@ import Observer from '../Reactive/Observer'
 import h from '../Render/render'
 import patch from './patch'
 import Watcher from '../Reactive/Watcher'
+import { setShallow } from '../globalSwitch'
 
 export function mountStatusComponent(vnode) {
   const instance = vnode.instance = new vnode.tag()
   const $data = instance.$data = instance.data(instance)
   instance.$props = vnode.data.props || {}
   new Observer($data, instance)
-  // new Observer(instance.$props, instance)
+  setShallow()
+  new Observer(instance.$props, instance)
+  setShallow()
   instance._update = function() {
     const instanceVnode = instance.render.call(instance, h)
     if (instance.isMounted) {

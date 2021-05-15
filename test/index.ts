@@ -6,21 +6,20 @@ const App = {
   name: 'App',
   data() {
     return {
-      stars: [1, 2, 3]
+      stars: [{name: 1}]
     }
   },
   mounted(){
     setTimeout(() => {
-      this.stars.push(4)
+      this.text = 2
     }, 1500)
-    console.log('mounted')
   },
   updated() {
     console.log('updated')
   },
   render(h) {
     console.log(this)
-    return h('div', {value: this.$props.text}, this.stars.map(v => v))
+    return h('div', {value: this.stars.map(v => v.name).join('')}, this.text)
   }
 }
 const instance = new AweSomeVue({

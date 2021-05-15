@@ -1,14 +1,18 @@
 import Dep from './Dep'
 
 const catchSelfArrayApi = ['push', 'splice', 'sort', 'reverse', 'pop', 'shift', 'unshift']
+const originArrayApi = ['map', 'forEach', 'filter', 'concat', 'some', 'every']
+const shallow = (window as any).shallow
 class ObserverData {
   constructor(data, key, value, dep) {
-    new Observer(value, null, dep)
+    if (!shallow) {
+      new Observer(value, null, dep)
+    }
+
     Object.defineProperty(data, key, {
       configurable: true,
       enumerable: true,
       get(): any {
-        console.log(1111)
         dep.addWatcher()
 
         return value
@@ -16,7 +20,9 @@ class ObserverData {
       set(newValue) {
         if (value === newValue || (value !== value && newValue !== newValue)) return
         value = newValue
-        new Observer(value, null, dep)
+        if (!shallow) {
+          new Observer(value, null, dep)
+        }
         
         dep.notify()
       }
@@ -60,26 +66,51 @@ export default class Observer {
     }
   }
   walkData(data, dep) {
-    console.log(11, dep)
+    var catchApis = {}
     catchSelfArrayApi.forEach(api => {
       const originFn = data[api].bind(data)
-      data[api] = function(...fields) {
+      catchApis[api] = function(...fields) {
         const rest = originFn.apply(null, fields)
-
+  
         switch (api) {
           case 'push':
           case 'unshift':
-            new Observer(fields[0])
+            fields.forEach(filed => {
+              new Observer(filed)
+            })
+
             break
           case 'splice':
-            new Observer(fields[2])
+            fields = fields.slice(2)
+
+            fields.forEach(filed => {
+              new Observer(filed)
+            })
             break
           default:
             break
         }
+
         dep.notify()
         return rest
       }
     })
+
+    originArrayApi.forEach(api => {
+      const originFn = data[api].bind(data)
+      catchApis[api] = function(...fields) {
+        const rest = originFn.apply(null, fields)
+        
+        dep.addWatcher()
+        return rest
+      }
+    })
+    
+    Object.setPrototypeOf(catchApis, Array.prototype)
+    Object.setPrototypeOf(data, catchApis)
+
+    for (let n = data.length, i = n - 1; i >= 0; i--) {
+      new Observer(data[i], null, dep)
+    }
   }
 }

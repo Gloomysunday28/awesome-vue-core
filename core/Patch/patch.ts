@@ -13,6 +13,9 @@ function addVnode(nvnode, pvnode: any = {}, container?) {
         nvnode.el.innerHTML = nvnode.children
       }
       break
+    case void 0:
+      mount(nvnode, container, false)
+      break
     default:
       break
   }
@@ -93,7 +96,6 @@ function patchChildren(nvnode, pvnode, container?) { // 处理子元素
         if (pvnode.flags.includes('Component') && nvnode.flags.includes('Component')) {
           nvnode.instance = pvnode.instance
           nvnode.instance.render = nvnode.tag.prototype.render
-          console.log('noChildren')
           nvnode.instance._update(nvnode)
         }
         return
@@ -193,7 +195,6 @@ function patchElement(nvnode, pvnode, container?) {
 }
 
 export default function patch<T extends VnodeTypes>(nvnode: T, pvnode: T, container?: HTMLElement) {
-  console.log('vnode123132', nvnode)
   if (pvnode) {
     if (nvnode) {
       nvnode.el = pvnode.el
